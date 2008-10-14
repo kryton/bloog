@@ -6,7 +6,7 @@
         <h2>List of Articles</h2>
         {% for article in articles %}
         <div class="entry"><p>
-            <a href="{{ article.permalink }}" alt="{{ article.title }}">{{ article.title }}</a>
+            <a href="{{ article.full_permalink }}" alt="{{ article.title }}">{{ article.title }}</a>
         </p></div>
         {% endfor %}
     </div>

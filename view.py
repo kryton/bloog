@@ -151,7 +151,7 @@ class ViewPage(object):
         NUM_FULL_RENDERS[path] += 1     # This lets us see % of cached views
                                         # in /admin/timings (see timings.py)
         tags = Tag.list()
-
+        template.register_template_library('templatetags.expr')
         # Define some parameters it'd be nice to have in views by default.
         template_params = {
             "current_url": url,

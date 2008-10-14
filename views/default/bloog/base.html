@@ -5,8 +5,8 @@
         <title> {{ title }}</title>
         <meta name="generator" content="Bloogle {{ bloogle_version }}" />
         <link rel="stylesheet" href="/static/default/style.css" type="text/css" media="screen" />
-        <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" 
-              href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
+        <link rel="alternate" type="application/atom+xml" title="{{ blog.title }} Atom Feed" 
+              href="http://feeds.feedburner.com/FehV2" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/assets/skins/sam/skin.css" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/container/assets/skins/sam/container.css" />
         {% block head %}
@@ -18,7 +18,7 @@
             <div id="masthead" class="fix">
                 <h1><a href="/">{{ blog.title }}</a></h1>
                 <div id="authorBlurb">
-                    <img src="/static/default/images/avatar.png" alt="Avatar" />
+                    <img src="/static/images/melbourne.jpg" alt="Avatar" />
                     <p id="authorIntro">
                         {{ blog.description }}
                     </p>
@@ -46,7 +46,7 @@
                 </li>
                 {% endfor %}
                 <li>
-                    <a href="{{ blog.master_atom_url }}" title="Subscribe to the main Atom feed">Atom
+                    <a href="http://feeds.feedburner.com/FehV2" title="Subscribe to the main Atom feed">Atom
                         <br/>
                         <span>Syndication</span>
                     </a>
@@ -100,8 +100,12 @@
                         <p class="tags">
                         {% if blog_tags %}
                             {% for tag in blog_tags %}
+
+{% expr (tag['count'] > 3 ) as foo %}
+{% if foo %}
                             <a href="/tag/{{ tag.name|urlencode }}">{{ tag.name }}</a>
                             ({{ tag.count }})<br />
+{% endif %}
                             {% endfor %}
                         {% else %}
                             No posts have been tagged yet.
@@ -170,7 +174,7 @@
                         </p>
                         <ul>
                             <li>
-                                <a href="{{ blog.master_atom_url }}" title="Full content Atom feed">Atom feed</a>
+                                <a href="http://feeds.feedburner.com/FehV2" title="Full content Atom feed">Atom feed</a>
                                 - Full content
                             </li>
                         </ul>
@@ -180,9 +184,7 @@
                 {% endblock %}
 
                 <!-- Third column: Show selected external links, ads, etc. -->
-                {% block third_column %}
-                {% include 'ads.html' %}
-                {% endblock %}
+
             </div>
 
             <div id="footer">
@@ -217,7 +219,7 @@
                     </li>
                     {% endfor %}
                     <li>
-                        <a href="{{ blog.master_atom_url }}" title="Subscribe to the main Atom feed">Atom
+                        <a href="http://feeds.feedburner.com/FehV2" title="Subscribe to the main Atom feed">Atom
                             <br/>
                             <span>Syndication</span>
                         </a>
@@ -246,7 +248,7 @@
                         {% endif %}
                         </p>
                     </div>
-                    <img id="poweredby" src="/static/images/appengine-noborder-120x30.gif" alt="Powered by Google App Engine" />
+               
                 </div>
             </div>
         </div>
@@ -260,5 +262,14 @@
 
         {% block end_body %}
         {% endblock %}
+		<script type="text/javascript">
+		var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+		document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+		</script>
+		<script type="text/javascript">
+		var pageTracker = _gat._getTracker("UA-60408-1");
+		pageTracker._initData();
+		pageTracker._trackPageview();
+		</script>
     </body>
 </html>

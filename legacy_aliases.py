@@ -6,4 +6,7 @@
 # Place below a "redirects" dictionary with aliases as the key 
 # (without host uri stem) and the permalink as the value.
 
-redirects = {}
+redirects = {
+"xml/atom10/feed.xml": "http://feeds.feedburner.com/FehV2",
+"articles.rss": "http://feeds.feedburner.com/FehV2"
+}

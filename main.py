@@ -46,15 +46,17 @@ ROUTES = [
     ('/404.html', blog.NotFoundHandler),
     ('/([12]\d\d\d)/*$', blog.YearHandler),
     ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
-    ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$', blog.BlogEntryHandler),
+    ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$', blog.BlogEntryHandler),    
+    ('/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
     ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
     ('/admin/timings/*$', timings.TimingHandler),
     ('/search', blog.SearchHandler),
     ('/contact/*$', contact.ContactHandler),
     ('/tag/(.*)', blog.TagHandler),
     (config.BLOG['master_atom_url'] + '/*$', blog.AtomHandler),
-    ('/articles', blog.ArticlesHandler),
-    ('/(.*)', blog.ArticleHandler)]
+    ('/articles/*$', blog.ArticlesHandler),
+    ('/articles/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
+    ('/(.*)', blog.MiscHandler)]
 
 def main():
     path = timings.start_run()

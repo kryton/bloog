@@ -15,7 +15,7 @@
 
     {% for article in articles %}
     <entry>
-        <title>{{ article.title }}</title>
+        <title type="html">{{ article.title|fix_ampersands|escape }}</title>
         <link rel="alternate" type="text/html" href="{{ article.full_permalink }}" />
 
         <id>{{ article.full_permalink }}</id>

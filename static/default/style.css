@@ -40,7 +40,10 @@ th,td{padding:3px 20px 3px 0px;}
 .popupDialog form textarea{width: 400px; margin:0px 5px;}
 
 /* masthead / footer - navigation and categories */
-#masthead{padding:5px 0;}
+#masthead{
+    padding:5px 0;
+background-image: url(http://blog.holsman.net/static/images/melbourne.jpg) no-repeat center center;
+}
 #masthead h1 a{text-transform:uppercase;width:400px;float:left;margin:12px 0 0 0;}
 #masthead h1 a em{font-style:normal;color:#555;}
 #authorBlurb img{float:right;width:42px;height:42px;border:3px solid #EEE;}
@@ -68,7 +71,7 @@ li.top a{width:100px;}
 #poweredby {float:right;width:120px;height:30px;}
 
 /* main - middle content and columns */
-#mid{}#mainCol{float:left;margin:26px 0 0 0;width:435px;}
+#mid{}#mainCol{float:left;margin:26px 0 0 0;width:645px;}
 #mid{}#twoCol{float:left;margin:26px 0 0 0;width:649px;}
 
 /* style individual sidebars */
@@ -82,8 +85,10 @@ li.top a{width:100px;}
 .middle_links h3{margin-bottom:7px;}
 #midCol ul{list-style:none;margin:8px 0 4px;}
 .middle_links ul li{background:url(images/li.gif) no-repeat 0 3px;color:#7F7F7F;line-height:1.2em;border-top:1px solid #BBB;padding:4px 0 4px 16px;}
+/*
 #tertCol{float:left;width:214px;margin:18px 0 0 33px;}
 #tertCol p{color:#777;}
+*/
 #elseWhere{margin:0 0 20px 0;}
 #elseWhere h3{margin-bottom:7px;}
 ul#imgLinks{list-style:none;margin:7px 0;}
