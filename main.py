@@ -53,7 +53,7 @@ ROUTES = [
     ('/([12]\d\d\d)/*$', blog.YearHandler),
     ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
     ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$', blog.BlogEntryHandler),    
-    ('/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
+#    ('/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
     ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
     ('/admin/timings/*$', timings.TimingHandler),
     ('/search', blog.SearchHandler),
@@ -61,11 +61,12 @@ ROUTES = [
     ('/tag/(.*)', blog.TagHandler),
     (config.BLOG['master_atom_url'] + '/*$', blog.AtomHandler),
     ('/articles/*$', blog.ArticlesHandler),
-    ('/articles/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
-    ('/(.*)', blog.MiscHandler)]
+#    ('/articles/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
+#    ('/(.*)', blog.MiscHandler)
 #    ('/articles', blog.ArticlesHandler),
     ('/sitemap.xml', blog.SitemapHandler),
 #    ('/(.*)', blog.ArticleHandler)]
+    ]
 
 def main():
     path = timings.start_run()
