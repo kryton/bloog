@@ -23,18 +23,24 @@
 
 __author__ = 'William T. Katz'
 
-from google.appengine.ext import webapp
-
-import logging
+import config
 import os
 import sys
-import wsgiref.handlers
-
-from handlers.bloog import blog, contact, cache_stats, timings
-import config
 
 # Force sys.path to have our own directory first, so we can import from it.
 sys.path.insert(0, config.APP_ROOT_DIR)
+sys.path.insert(1, os.path.join(config.APP_ROOT_DIR, 'utils/external'))
+
+import logging
+import wsgiref.handlers
+from firepython.middleware import FirePythonWSGI
+from google.appengine.ext import webapp
+from google.appengine.api import users
+from handlers.bloog import blog, contact, cache_stats, timings
+
+# Import custom django libraries
+webapp.template.register_template_library('utils.django_libs.gravatar')
+webapp.template.register_template_library('utils.django_libs.description')
 
 # Log a message each time this module get loaded.
 logging.info('Loading %s, app version = %s',
@@ -57,10 +63,15 @@ ROUTES = [
     ('/articles/*$', blog.ArticlesHandler),
     ('/articles/([12]\d\d\d)/(\d|[01]\d)/(\d+)/([-\w]+)/*$', blog.BlogDateEntryHandler),
     ('/(.*)', blog.MiscHandler)]
+#    ('/articles', blog.ArticlesHandler),
+    ('/sitemap.xml', blog.SitemapHandler),
+#    ('/(.*)', blog.ArticleHandler)]
 
 def main():
     path = timings.start_run()
-    application = webapp.WSGIApplication(ROUTES, debug=True)
+    application = webapp.WSGIApplication(ROUTES, debug=config.DEBUG)
+    if users.is_current_user_admin():
+        application = FirePythonWSGI(application)
     wsgiref.handlers.CGIHandler().run(application)
     timings.stop_run(path)
 

@@ -50,6 +50,8 @@ from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
+from google.appengine.api import mail
+from google.appengine.api import urlfetch
 
 from handlers import restful
 from utils import authorized
@@ -71,12 +73,18 @@ permalink_funcs = {
 # We allow a mapping from some old url pattern to the current query 
 #  using a regex's matched string.
 def legacy_id_mapping(path, legacy_program):
-    if legacy_program and legacy_program == 'Drupal':
-        url_match = re.match('node/(\d+)/?$', path)
-        if url_match:
-            return db.Query(models.blog.Article). \
-                filter('legacy_id =', url_match.group(1)). \
-                get()
+    if legacy_program:
+        if legacy_program == 'Drupal':
+            url_match = re.match('node/(\d+)/?$', path)
+            if url_match:
+                return db.Query(models.blog.Article). \
+                    filter('legacy_id =', url_match.group(1)). \
+                    get()
+        elif legacy_program == 'Serendipity':
+            url_match = re.match('archives/(\d+)-.*\.html$', path)
+            if url_match:
+                return db.Query(models.blog.Article). \
+                    filter('legacy_id =', url_match.group(1)).get()
     return None
 
 # Module methods to handle incoming data
@@ -137,7 +145,13 @@ def get_sanitizer_func(handler, **kwargs):
     logging.debug("Content-type: %s", handler.request.headers['CONTENT_TYPE'])
     logging.debug("In sanitizer: %s", kwlist)
     return lambda html : sanitizer.sanitize_html(html, **kwlist)
-        
+
+def do_sitemap_ping():
+    form_fields = { "sitemap": "%s/sitemap.xml" % (config.BLOG['root_url'],) }
+    urlfetch.fetch(url="http://www.google.com/webmasters/tools/ping",
+                   payload=urllib.urlencode(form_fields),
+                   method=urlfetch.GET)
+
 def process_embedded_code(article):
     # TODO -- Check for embedded code, escape opening triangular brackets
     # within code, and set article embedded_code strings so we can
@@ -206,6 +220,7 @@ def process_article_submission(handler, article_type):
         article.put()
         for key in article.tag_keys:
             db.get(key).counter.increment()
+        do_sitemap_ping()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
     else:
@@ -228,9 +243,9 @@ def process_comment_submission(handler, article):
 
     # If we aren't administrator, abort if bad captcha
     if not users.is_current_user_admin():
-        if property_hash['captcha'] != get_captcha(article.key()):
+        if property_hash.get('captcha', None) != get_captcha(article.key()):
             logging.info("Received captcha (%s) != %s", 
-                          property_hash['captcha'], 
+                          property_hash.get('captcha', None),
                           get_captcha(article.key()))
             handler.error(401)      # Unauthorized
             return
@@ -274,11 +289,23 @@ def process_comment_submission(handler, article):
         logging.debug("Bad comment: %s", property_hash)
         handler.error(400)
         return
+        
+    # Notify the author of a new comment (from matteocrippa.it)
+    if config.BLOG['send_comment_notification']:
+        recipient = "%s <%s>" % (config.BLOG['author'], config.BLOG['email'],)
+        body = ("A new comment has just been posted on %s/%s by %s."
+                % (config.BLOG['root_url'], article.permalink, comment.name))
+        mail.send_mail(sender=config.BLOG['email'],
+                       to=recipient,
+                       subject="New comment by %s" % (comment.name,),
+                       body=body)
 
     # Render just this comment and send it to client
+    view_path = view.find_file(view.templates, "bloog/blog/comment.html")
     response = template.render(
-        "views/%s/bloog/blog/comment.html" % config.BLOG['theme'], 
-        { 'comment': comment }, debug=config.DEBUG)
+        os.path.join("views", view_path),
+        { 'comment': comment, "use_gravatars": config.BLOG["use_gravatars"] },
+        debug=config.DEBUG)
     handler.response.out.write(response)
     view.invalidate_cache()
 
@@ -312,7 +339,9 @@ def render_article(handler, article):
                                    "allow_comments": allow_comments,
                                    "article": article,
                                    "captcha1": captcha[:3],
-                                   "captcha2": captcha[3:6] })
+                                   "captcha2": captcha[3:6],
+                                   "use_gravatars": config.BLOG['use_gravatars']
+            })
     else:
         # This didn't fall into any of our pages or aliases.
         # Page not found.
@@ -368,14 +397,18 @@ class ArticleHandler(restful.Controller):
                 self.redirect(legacy_aliases.redirects[alias])
                 return
 
-        # This lets you map arbitrary URL patterns like /node/3
-        #  to article properties, e.g. 3 -> legacy_id property
-        article = legacy_id_mapping(path, config.BLOG["legacy_blog_software"])
-
         # Check undated pages
+        article = db.Query(models.blog.Article). \
+                     filter('permalink =', path).get()
+
         if not article:
-            article = db.Query(models.blog.Article). \
-                         filter('permalink =', path).get()
+            # This lets you map arbitrary URL patterns like /node/3
+            #  to article properties, e.g. 3 -> legacy_id property
+            article = legacy_id_mapping(path,
+                                        config.BLOG["legacy_blog_software"])
+            if article and config.BLOG["legacy_entry_redirect"]:
+                self.redirect('/' + article.permalink)
+                return
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
@@ -555,3 +588,16 @@ class AtomHandler(webapp.RequestHandler):
         page = view.ViewPage()
         page.render(self, {"blog_updated_timestamp": updated, 
                            "articles": articles, "ext": "xml"})
+
+class SitemapHandler(webapp.RequestHandler):
+	def get(self):
+		logging.debug("Sending Sitemap")
+		articles = db.Query(models.blog.Article).order('-published').fetch(1000)
+		if articles:
+			self.response.headers['Content-Type'] = 'text/xml'
+			page = view.ViewPage()
+			page.render(self, {
+          "articles": articles,
+          "ext": "xml",
+          "root_url": config.BLOG['root_url']
+      })
